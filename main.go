@@ -78,7 +78,21 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 		}
 
 		if strings.HasPrefix(txt, "/") { // if it is command,
-			if strings.HasPrefix(txt, "/"+lib.CommandTime) {
+			if strings.HasPrefix(txt, "/"+lib.CommandStart) {
+				message := lib.MessageStart
+				var options map[string]interface{} = map[string]interface{}{
+					"reply_markup": bot.ReplyKeyboardMarkup{
+						Keyboard: [][]string{
+							[]string{"/" + lib.CommandTime, "/" + lib.CommandIP},
+						},
+					},
+				}
+
+				// send message
+				if sent := client.SendMessage(update.Message.Chat.Id, &message, options); !sent.Ok {
+					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				}
+			} else if strings.HasPrefix(txt, "/"+lib.CommandTime) {
 				queue <- lib.GetTimeString()
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
 				queue <- lib.GetIPString()

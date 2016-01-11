@@ -4,6 +4,9 @@ const (
 	ParamCommand = "c"
 	ParamValue   = "v"
 
-	CommandTime = "time"
-	CommandIP   = "ip"
+	CommandStart = "start"
+	CommandTime  = "time"
+	CommandIP    = "ip"
+
+	MessageStart = "Welcome. (https://github.com/meinside/scroll-daemon)"
 )

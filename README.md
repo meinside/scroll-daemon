@@ -1,5 +1,7 @@
 # Go daemon for Pimoroni Scroll pHat
 
+With this daemon, you can scroll strings on your [Pimoroni](https://shop.pimoroni.com/) [Scroll pHat](https://shop.pimoroni.com/products/scroll-phat) through command line or Telegram messages.
+
 ## Install
 
 ```bash

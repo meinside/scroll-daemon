@@ -8,6 +8,30 @@ $ go get -u github.com/meinside/scroll-daemon/...
 
 ## Configuration
 
+### Config file
+
+```bash
+$ cd $GOPATH/src/github.com/meinside/scroll-daemon
+$ cp config.json.sample config.json
+$ vi config.json
+```
+
+and edit values to yours:
+
+```
+{
+	"api_token": "0123456789:abcdefghijklmnopqrstuvwyz-x-0a1b2c3d4e",
+	"local_port": 59991,
+	"available_ids": [
+		"telegram_id_1",
+		"telegram_id_2",
+		"telegram_id_3"
+	],
+	"phat_brightness": 5,
+	"is_verbose": false
+}
+```
+
 ### systemd
 
 ```bash

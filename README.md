@@ -55,6 +55,25 @@ and will start with:
 $ sudo systemctl start scroll-daemon.service
 ```
 
+## Send messages/commands through Telegram
+
+![scroll_daemon_telegram](https://cloud.githubusercontent.com/assets/185988/12233597/63451f38-b8ab-11e5-8aa8-f90c8023698c.png)
+
+## Send messages/commands through command line
+
+```bash
+# scroll current time
+$ scroll-cli -t
+
+# scroll ip addresses
+$ scroll-cli -i
+
+# scroll a long message
+$ scroll-cli "show me the money $$$"
+$ scroll-cli `uname -a`
+```
+
+
 ## License
 
 MIT

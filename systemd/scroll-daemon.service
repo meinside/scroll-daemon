@@ -1,0 +1,17 @@
+[Unit]
+Description=Scroll pHat Daemon
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=some_user
+Group=some_user
+WorkingDirectory=/path/to/scroll-daemon
+ExecStart=/path/to/scroll-daemon/scroll-daemon
+Restart=always
+RestartSec=5
+Environment=
+
+[Install]
+WantedBy=multi-user.target

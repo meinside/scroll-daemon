@@ -7,5 +7,7 @@
 		"telegram_id_3"
 	],
 	"phat_brightness": 5,
+	"phat_scroll_delay": 75,
+	"telegram_monitor_interval": 1,
 	"is_verbose": false
 }

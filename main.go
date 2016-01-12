@@ -15,10 +15,7 @@ import (
 const (
 	HttpCommandPath = "/"
 
-	QueueSize              = 1
-	MonitorIntervalSeconds = 3
-
-	ScrollDelayMsecs = 50
+	QueueSize = 1
 )
 
 // variables
@@ -27,6 +24,8 @@ var apiToken string
 var localPort int
 var availableIds []string
 var pHatBrightness byte
+var pHatScrollDelay uint
+var telegramMonitorInterval uint
 var isVerbose bool
 var queue chan string
 
@@ -37,6 +36,8 @@ func init() {
 		localPort = conf.LocalPort
 		availableIds = conf.AvailableIds
 		pHatBrightness = conf.PHatBrightness
+		pHatScrollDelay = conf.PHatScrollDelay
+		telegramMonitorInterval = conf.TelegramMonitorInterval
 		isVerbose = conf.IsVerbose
 
 		// initialize other variables
@@ -157,7 +158,7 @@ func main() {
 			for {
 				select {
 				case s := <-queue:
-					pHat.Scroll(s, ScrollDelayMsecs)
+					pHat.Scroll(s, pHatScrollDelay)
 				default:
 					// do nothing
 				}
@@ -181,7 +182,7 @@ func main() {
 			// delete webhook (getting updates will not work when wehbook is set up)
 			if unhooked := client.DeleteWebhook(); unhooked.Ok {
 				// wait for new updates
-				client.StartMonitoringUpdates(0, MonitorIntervalSeconds, func(b *bot.Bot, update bot.Update, err error) {
+				client.StartMonitoringUpdates(0, int(telegramMonitorInterval), func(b *bot.Bot, update bot.Update, err error) {
 					if err == nil {
 						if update.Message != nil {
 							processUpdate(b, update)

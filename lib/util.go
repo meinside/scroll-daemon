@@ -20,11 +20,13 @@ const (
 
 // struct for config file
 type Config struct {
-	ApiToken       string   `json:"api_token"`
-	LocalPort      int      `json:"local_port"`
-	AvailableIds   []string `json:"available_ids"`
-	PHatBrightness byte     `json:"phat_brightness"`
-	IsVerbose      bool     `json:"is_verbose"`
+	ApiToken                string   `json:"api_token"`
+	LocalPort               int      `json:"local_port"`
+	AvailableIds            []string `json:"available_ids"`
+	PHatBrightness          byte     `json:"phat_brightness"`
+	PHatScrollDelay         uint     `json:"phat_scroll_delay"`         // in msec
+	TelegramMonitorInterval uint     `json:"telegram_monitor_interval"` // in sec
+	IsVerbose               bool     `json:"is_verbose"`
 }
 
 // Read config

@@ -83,7 +83,7 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 				var options map[string]interface{} = map[string]interface{}{
 					"reply_markup": bot.ReplyKeyboardMarkup{
 						Keyboard: [][]string{
-							[]string{"/" + lib.CommandTime, "/" + lib.CommandIP},
+							[]string{"/" + lib.CommandTime, "/" + lib.CommandIP, "/" + lib.CommandHelp},
 						},
 					},
 				}
@@ -96,8 +96,20 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 				queue <- lib.GetTimeString()
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
 				queue <- lib.GetIPString()
+			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
+				// send message
+				message := lib.MessageHelp
+				if sent := client.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				}
 			} else {
 				log.Printf("*** No such command: %s\n", txt)
+
+				// send message
+				message := fmt.Sprintf("No such command: %s", txt)
+				if sent := client.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				}
 			}
 		} else { // otherwise,
 			queue <- txt

@@ -57,7 +57,7 @@ func isAvailableId(id string) bool {
 }
 
 // for processing incoming update from Telegram
-func processUpdate(client *bot.Bot, update bot.Update) bool {
+func processUpdate(b *bot.Bot, update bot.Update) bool {
 	// check username
 	var userId string
 	if update.Message.From.Username == nil {
@@ -89,7 +89,7 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 				}
 
 				// send message
-				if sent := client.SendMessage(update.Message.Chat.Id, &message, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.Id, &message, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s\n", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandTime) {
@@ -99,7 +99,7 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message
 				message := lib.MessageHelp
-				if sent := client.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
 					log.Printf("*** Failed to send message: %s\n", *sent.Description)
 				}
 			} else {
@@ -107,7 +107,7 @@ func processUpdate(client *bot.Bot, update bot.Update) bool {
 
 				// send message
 				message := fmt.Sprintf("No such command: %s", txt)
-				if sent := client.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
 					log.Printf("*** Failed to send message: %s\n", *sent.Description)
 				}
 			}
@@ -181,10 +181,10 @@ func main() {
 			// delete webhook (getting updates will not work when wehbook is set up)
 			if unhooked := client.DeleteWebhook(); unhooked.Ok {
 				// wait for new updates
-				client.StartMonitoringUpdates(0, MonitorIntervalSeconds, func(update bot.Update, err error) {
+				client.StartMonitoringUpdates(0, MonitorIntervalSeconds, func(b *bot.Bot, update bot.Update, err error) {
 					if err == nil {
 						if update.Message != nil {
-							processUpdate(client, update)
+							processUpdate(b, update)
 						}
 					} else {
 						log.Printf("*** Error while receiving update (%s)\n", err.Error())

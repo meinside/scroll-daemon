@@ -159,8 +159,6 @@ func main() {
 				select {
 				case s := <-queue:
 					pHat.Scroll(s, pHatScrollDelay)
-				default:
-					// do nothing
 				}
 			}
 		}()

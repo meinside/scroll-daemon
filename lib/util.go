@@ -24,7 +24,8 @@ type Config struct {
 	LocalPort               int      `json:"local_port"`
 	AvailableIds            []string `json:"available_ids"`
 	PHatBrightness          byte     `json:"phat_brightness"`
-	PHatScrollDelay         uint     `json:"phat_scroll_delay"`         // in msec
+	PHatScrollDelay         uint     `json:"phat_scroll_delay"` // in msec
+	PHatRotate180Degrees    bool     `json:"phat_rotate_180degrees"`
 	TelegramMonitorInterval uint     `json:"telegram_monitor_interval"` // in sec
 	IsVerbose               bool     `json:"is_verbose"`
 }

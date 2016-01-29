@@ -25,6 +25,7 @@ var localPort int
 var availableIds []string
 var pHatBrightness byte
 var pHatScrollDelay uint
+var pHatRotateOrNot bool
 var telegramMonitorInterval uint
 var isVerbose bool
 var queue chan string
@@ -37,6 +38,7 @@ func init() {
 		availableIds = conf.AvailableIds
 		pHatBrightness = conf.PHatBrightness
 		pHatScrollDelay = conf.PHatScrollDelay
+		pHatRotateOrNot = conf.PHatRotate180Degrees
 		telegramMonitorInterval = conf.TelegramMonitorInterval
 		isVerbose = conf.IsVerbose
 
@@ -151,6 +153,8 @@ func main() {
 		panic("Failed to initialize Scroll pHat")
 	} else {
 		// setup pHat
+		scroll.IsFlippedHorizontally = pHatRotateOrNot
+		scroll.IsFlippedVertically = pHatRotateOrNot
 		pHat.SetBrightness(pHatBrightness)
 
 		// wait for channel

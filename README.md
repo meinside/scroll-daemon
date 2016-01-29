@@ -30,6 +30,9 @@ and edit values to yours:
 		"telegram_id_3"
 	],
 	"phat_brightness": 5,
+	"phat_scroll_delay": 75,
+	"phat_rotate_180degrees": false,
+	"telegram_monitor_interval": 1,
 	"is_verbose": false
 }
 ```

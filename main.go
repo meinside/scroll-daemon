@@ -96,9 +96,21 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 					log.Printf("*** Failed to send message: %s\n", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandTime) {
-				queue <- lib.GetTimeString()
+				time := lib.GetTimeString()
+
+				queue <- time
+
+				if sent := b.SendMessage(update.Message.Chat.Id, &time, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
-				queue <- lib.GetIPString()
+				ip := lib.GetIPString()
+
+				queue <- ip
+
+				if sent := b.SendMessage(update.Message.Chat.Id, &ip, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message
 				message := lib.MessageHelp

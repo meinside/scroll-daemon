@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/meinside/scroll-daemon/lib"
-
 	scroll "github.com/meinside/scrollphat-go"
-	bot "github.com/meinside/telegram-bot-go"
+	bot "github.com/meinside/telegram-bot-go" // version 0.1.1
+
+	"./lib"
 )
 
 const (

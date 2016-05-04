@@ -7,7 +7,7 @@ View the [documentation here](https://godoc.org/github.com/meinside/telegram-bot
 ## Install
 
 ```
-$ go get github.com/meinside/telegram-bot-go
+$ go get -u github.com/meinside/telegram-bot-go
 ```
 
 ## Generate a self-signed certificate (when using incoming webhook)
@@ -50,7 +50,7 @@ Also, you can generate certificate and private key using **telegrambot.GenCertAn
 ## Usage: with incoming webhook
 
 ```go
-// sample code for telegram-bot-go (receive webhooks), last update: 2016.01.12.
+// sample code for telegram-bot-go (receive webhooks), last update: 2016.04.14.
 package main
 
 import (
@@ -95,21 +95,48 @@ func main() {
 								b.SendChatAction(webhook.Message.Chat.Id, bot.ChatActionTyping)
 								time.Sleep(TypingDelaySeconds * time.Second)
 
-								// send message
 								var message string
-								if webhook.Message.HasText() {
-									message = fmt.Sprintf("I received @%s's message: %s", *webhook.Message.From.Username, *webhook.Message.Text)
-								} else {
-									message = fmt.Sprintf("I received @%s's message", *webhook.Message.From.Username)
-								}
+
 								options := map[string]interface{}{
-									"reply_to_message_id": webhook.Message.MessageId,
+									"reply_to_message_id": webhook.Message.MessageId, // show original message
+									"reply_markup": bot.ReplyKeyboardMarkup{ // show keyboards
+										Keyboard: [][]bot.KeyboardButton{
+											[]bot.KeyboardButton{
+												bot.KeyboardButton{
+													Text: "Just a button",
+												},
+											},
+											[]bot.KeyboardButton{
+												bot.KeyboardButton{
+													Text:           "Request contact",
+													RequestContact: true,
+												},
+												bot.KeyboardButton{
+													Text:            "Request location",
+													RequestLocation: true,
+												},
+											},
+										},
+									},
 								}
+
+								if webhook.Message.HasContact() {
+									message = fmt.Sprintf("I received @%s's phone no.: %s", *webhook.Message.From.Username, *webhook.Message.Contact.PhoneNumber)
+								} else if webhook.Message.HasLocation() {
+									message = fmt.Sprintf("I received @%s's location: (%f, %f)", *webhook.Message.From.Username, webhook.Message.Location.Latitude, webhook.Message.Location.Longitude)
+								} else {
+									if webhook.Message.HasText() {
+										message = fmt.Sprintf("I received @%s's message: %s", *webhook.Message.From.Username, *webhook.Message.Text)
+									} else {
+										message = fmt.Sprintf("I received @%s's message", *webhook.Message.From.Username)
+									}
+								}
+								// send message
 								if sent := b.SendMessage(webhook.Message.Chat.Id, &message, options); !sent.Ok {
 									log.Printf("*** failed to send message: %s\n", *sent.Description)
 								}
 							} else if webhook.HasInlineQuery() {
-								// articles for test
+								// articles for inline query
 								article1, _ := bot.NewInlineQueryResultArticle(
 									"Star Wars quotes",
 									"I am your father.",
@@ -123,6 +150,8 @@ func main() {
 									article1,
 									article2,
 								}
+
+								// answer inline query
 								if sent := b.AnswerInlineQuery(*webhook.InlineQuery.Id, results, nil); !sent.Ok {
 									log.Printf("*** failed to answer inline query: %s\n", *sent.Description)
 								}
@@ -151,7 +180,7 @@ func main() {
 It would be useful when you're behind a firewall or something.
 
 ```go
-// sample code for telegram-bot-go (get updates), last update: 2016.01.12.
+// sample code for telegram-bot-go (get updates), last update: 2016.04.14.
 package main
 
 import (
@@ -189,21 +218,48 @@ func main() {
 						b.SendChatAction(update.Message.Chat.Id, bot.ChatActionTyping)
 						time.Sleep(TypingDelaySeconds * time.Second)
 
-						// send message
 						var message string
-						if update.Message.HasText() {
-							message = fmt.Sprintf("I received @%s's message: %s", *update.Message.From.Username, *update.Message.Text)
-						} else {
-							message = fmt.Sprintf("I received @%s's message", *update.Message.From.Username)
-						}
+
 						options := map[string]interface{}{
-							"reply_to_message_id": update.Message.MessageId,
+							"reply_to_message_id": update.Message.MessageId, // show original message
+							"reply_markup": bot.ReplyKeyboardMarkup{ // show keyboards
+								Keyboard: [][]bot.KeyboardButton{
+									[]bot.KeyboardButton{
+										bot.KeyboardButton{
+											Text: "Just a button",
+										},
+									},
+									[]bot.KeyboardButton{
+										bot.KeyboardButton{
+											Text:           "Request contact",
+											RequestContact: true,
+										},
+										bot.KeyboardButton{
+											Text:            "Request location",
+											RequestLocation: true,
+										},
+									},
+								},
+							},
 						}
+
+						if update.Message.HasContact() {
+							message = fmt.Sprintf("I received @%s's phone no.: %s", *update.Message.From.Username, *update.Message.Contact.PhoneNumber)
+						} else if update.Message.HasLocation() {
+							message = fmt.Sprintf("I received @%s's location: (%f, %f)", *update.Message.From.Username, update.Message.Location.Latitude, update.Message.Location.Longitude)
+						} else {
+							if update.Message.HasText() {
+								message = fmt.Sprintf("I received @%s's message: %s", *update.Message.From.Username, *update.Message.Text)
+							} else {
+								message = fmt.Sprintf("I received @%s's message", *update.Message.From.Username)
+							}
+						}
+						// send message
 						if sent := b.SendMessage(update.Message.Chat.Id, &message, options); !sent.Ok {
 							log.Printf("*** failed to send message: %s\n", *sent.Description)
 						}
 					} else if update.HasInlineQuery() {
-						// articles for test
+						// articles for inline query
 						article1, _ := bot.NewInlineQueryResultArticle(
 							"Star Wars quotes",
 							"I am your father.",
@@ -217,6 +273,8 @@ func main() {
 							article1,
 							article2,
 						}
+
+						// answer inline query
 						if sent := b.AnswerInlineQuery(*update.InlineQuery.Id, results, nil); !sent.Ok {
 							log.Printf("*** failed to answer inline query: %s\n", *sent.Description)
 						}

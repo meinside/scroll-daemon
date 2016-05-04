@@ -29,6 +29,7 @@ var pHatRotateOrNot bool
 var telegramMonitorInterval uint
 var isVerbose bool
 var queue chan string
+var allKeyboards [][]bot.KeyboardButton
 
 func init() {
 	// read variables from config file
@@ -41,6 +42,21 @@ func init() {
 		pHatRotateOrNot = conf.PHatRotate180Degrees
 		telegramMonitorInterval = conf.TelegramMonitorInterval
 		isVerbose = conf.IsVerbose
+
+		// all keyboard buttons
+		allKeyboards = [][]bot.KeyboardButton{
+			[]bot.KeyboardButton{
+				bot.KeyboardButton{
+					Text: "/" + lib.CommandTime,
+				},
+				bot.KeyboardButton{
+					Text: "/" + lib.CommandIP,
+				},
+				bot.KeyboardButton{
+					Text: "/" + lib.CommandHelp,
+				},
+			},
+		}
 
 		// initialize other variables
 		queue = make(chan string, QueueSize)
@@ -85,9 +101,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 				message := lib.MessageStart
 				var options map[string]interface{} = map[string]interface{}{
 					"reply_markup": bot.ReplyKeyboardMarkup{
-						Keyboard: [][]string{
-							[]string{"/" + lib.CommandTime, "/" + lib.CommandIP, "/" + lib.CommandHelp},
-						},
+						Keyboard: allKeyboards,
 					},
 				}
 

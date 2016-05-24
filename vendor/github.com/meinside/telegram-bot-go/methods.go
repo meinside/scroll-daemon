@@ -14,10 +14,69 @@ import (
 	"strconv"
 )
 
+// Get updates.
+//
+// options include: offset, limit, and timeout.
+//
+// https://core.telegram.org/bots/api#getupdates
+func (b *Bot) GetUpdates(options map[string]interface{}) (result ApiResponseUpdates) {
+	// optional params
+	params := map[string]interface{}{}
+	for key, val := range options {
+		if val != nil {
+			params[key] = val
+		}
+	}
+
+	return b.requestResultUpdates("getUpdates", params)
+}
+
+// Set webhook url and certificate for receiving incoming updates.
+// port should be one of: 443, 80, 88, or 8443.
+//
+// https://core.telegram.org/bots/api#setwebhook
+func (b *Bot) SetWebhook(host string, port int, certFilepath string) (result ApiResponse) {
+	b.webhookHost = host
+	b.webhookPort = port
+	b.webhookUrl = b.getWebhookUrl()
+
+	file, err := os.Open(certFilepath)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	params := map[string]interface{}{
+		"url":         b.webhookUrl,
+		"certificate": file,
+	}
+
+	b.verbose("setting webhook url to: %s", b.webhookUrl)
+
+	return b.requestResult("setWebhook", params)
+}
+
+// Delete webhook.
+// (Function GetUpdates will not work if webhook is set, so in that case you'll need to delete it)
+//
+// https://core.telegram.org/bots/api#setwebhook
+func (b *Bot) DeleteWebhook() (result ApiResponse) {
+	b.webhookHost = ""
+	b.webhookPort = 0
+	b.webhookUrl = ""
+
+	params := map[string]interface{}{
+		"url": "",
+	}
+
+	b.verbose("deleting webhook url")
+
+	return b.requestResult("setWebhook", params)
+}
+
 // Get info of this bot.
 //
 // https://core.telegram.org/bots/api#getme
-func (b *Bot) GetMe() (result ApiResultUser) {
+func (b *Bot) GetMe() (result ApiResponseUser) {
 	return b.requestResultUser("getMe", map[string]interface{}{}) // no params
 }
 
@@ -28,7 +87,7 @@ func (b *Bot) GetMe() (result ApiResultUser) {
 // options include: parse_mode, disable_web_page_preview, disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendmessage
-func (b *Bot) SendMessage(chatId interface{}, text *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendMessage(chatId interface{}, text *string, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id": chatId,
@@ -51,7 +110,7 @@ func (b *Bot) SendMessage(chatId interface{}, text *string, options map[string]i
 // options include: disable_notification
 //
 // https://core.telegram.org/bots/api#forwardmessage
-func (b *Bot) ForwardMessage(chatId interface{}, fromChatId interface{}, messageId int) (result ApiResultMessage) {
+func (b *Bot) ForwardMessage(chatId interface{}, fromChatId interface{}, messageId int) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id":      chatId,
@@ -69,7 +128,7 @@ func (b *Bot) ForwardMessage(chatId interface{}, fromChatId interface{}, message
 // options include: caption, disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendphoto
-func (b *Bot) SendPhoto(chatId interface{}, photoFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendPhoto(chatId interface{}, photoFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*photoFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -89,7 +148,12 @@ func (b *Bot) SendPhoto(chatId interface{}, photoFilepath *string, options map[s
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -100,7 +164,7 @@ func (b *Bot) SendPhoto(chatId interface{}, photoFilepath *string, options map[s
 // options include: duration, performer, title, disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendaudio
-func (b *Bot) SendAudio(chatId interface{}, audioFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendAudio(chatId interface{}, audioFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*audioFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -120,7 +184,12 @@ func (b *Bot) SendAudio(chatId interface{}, audioFilepath *string, options map[s
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -131,7 +200,7 @@ func (b *Bot) SendAudio(chatId interface{}, audioFilepath *string, options map[s
 // options include: disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#senddocument
-func (b *Bot) SendDocument(chatId interface{}, documentFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendDocument(chatId interface{}, documentFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*documentFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -151,7 +220,12 @@ func (b *Bot) SendDocument(chatId interface{}, documentFilepath *string, options
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -162,7 +236,7 @@ func (b *Bot) SendDocument(chatId interface{}, documentFilepath *string, options
 // options include: disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendsticker
-func (b *Bot) SendSticker(chatId interface{}, stickerFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendSticker(chatId interface{}, stickerFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*stickerFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -182,7 +256,12 @@ func (b *Bot) SendSticker(chatId interface{}, stickerFilepath *string, options m
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -193,7 +272,7 @@ func (b *Bot) SendSticker(chatId interface{}, stickerFilepath *string, options m
 // options include: duration, caption, disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendvideo
-func (b *Bot) SendVideo(chatId interface{}, videoFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendVideo(chatId interface{}, videoFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*videoFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -213,7 +292,12 @@ func (b *Bot) SendVideo(chatId interface{}, videoFilepath *string, options map[s
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -224,7 +308,7 @@ func (b *Bot) SendVideo(chatId interface{}, videoFilepath *string, options map[s
 // options include: disable_notification, duration, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendvoice
-func (b *Bot) SendVoice(chatId interface{}, voiceFilepath *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendVoice(chatId interface{}, voiceFilepath *string, options map[string]interface{}) (result ApiResponseMessage) {
 	if file, err := os.Open(*voiceFilepath); err == nil {
 		// essential params
 		params := map[string]interface{}{
@@ -244,7 +328,12 @@ func (b *Bot) SendVoice(chatId interface{}, voiceFilepath *string, options map[s
 
 		b.error(errStr)
 
-		return ApiResultMessage{Ok: false, Description: &errStr}
+		return ApiResponseMessage{
+			ApiResponseBase: ApiResponseBase{
+				Ok:          false,
+				Description: &errStr,
+			},
+		}
 	}
 }
 
@@ -255,7 +344,7 @@ func (b *Bot) SendVoice(chatId interface{}, voiceFilepath *string, options map[s
 // options include: display_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendlocation
-func (b *Bot) SendLocation(chatId interface{}, latitude, longitude float32, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendLocation(chatId interface{}, latitude, longitude float32, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id":   chatId,
@@ -279,7 +368,7 @@ func (b *Bot) SendLocation(chatId interface{}, latitude, longitude float32, opti
 // options include: foursquare_id, disable_notification, reply_to_message_id, and reply_markup.
 //
 // https://core.telegram.org/bots/api#sendvenue
-func (b *Bot) SendVenue(chatId interface{}, latitude, longitude float32, title, address *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) SendVenue(chatId interface{}, latitude, longitude float32, title, address *string, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id":   chatId,
@@ -304,8 +393,8 @@ func (b *Bot) SendVenue(chatId interface{}, latitude, longitude float32, title, 
 //
 // options include: last_name, disable_notification, reply_to_message_id, and reply_markup.
 //
-// https://core.telegram.org/bots/api#sendvenue
-func (b *Bot) SendContact(chatId interface{}, phoneNumber, firstName *string, options map[string]interface{}) (result ApiResultMessage) {
+// https://core.telegram.org/bots/api#sendcontact
+func (b *Bot) SendContact(chatId interface{}, phoneNumber, firstName *string, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id":      chatId,
@@ -319,7 +408,7 @@ func (b *Bot) SendContact(chatId interface{}, phoneNumber, firstName *string, op
 		}
 	}
 
-	return b.requestResultMessage("sendVenue", params)
+	return b.requestResultMessage("sendContact", params)
 }
 
 // Send chat action.
@@ -327,7 +416,7 @@ func (b *Bot) SendContact(chatId interface{}, phoneNumber, firstName *string, op
 // chatId can be Message.Chat.Id or target channel(eg. @channelusername).
 //
 // https://core.telegram.org/bots/api#sendchataction
-func (b *Bot) SendChatAction(chatId interface{}, action ChatAction) (result ApiResult) {
+func (b *Bot) SendChatAction(chatId interface{}, action ChatAction) (result ApiResponse) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id": chatId,
@@ -342,7 +431,7 @@ func (b *Bot) SendChatAction(chatId interface{}, action ChatAction) (result ApiR
 // options include: offset and limit.
 //
 // https://core.telegram.org/bots/api#getuserprofilephotos
-func (b *Bot) GetUserProfilePhotos(userId int, options map[string]interface{}) (result ApiResultUserProfilePhotos) {
+func (b *Bot) GetUserProfilePhotos(userId int, options map[string]interface{}) (result ApiResponseUserProfilePhotos) {
 	// essential params
 	params := map[string]interface{}{
 		"user_id": userId,
@@ -360,7 +449,7 @@ func (b *Bot) GetUserProfilePhotos(userId int, options map[string]interface{}) (
 // Get file info and prepare for download.
 //
 // https://core.telegram.org/bots/api#getfile
-func (b *Bot) GetFile(fileId *string) (result ApiResultFile) {
+func (b *Bot) GetFile(fileId *string) (result ApiResponseFile) {
 	// essential params
 	params := map[string]interface{}{
 		"file_id": *fileId,
@@ -377,7 +466,7 @@ func (b *Bot) GetFileUrl(file File) string {
 // Kick chat member
 //
 // https://core.telegram.org/bots/api#kickchatmember
-func (b *Bot) KickChatMember(chatId interface{}, userId int) (result ApiResult) {
+func (b *Bot) KickChatMember(chatId interface{}, userId int) (result ApiResponse) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id": chatId,
@@ -387,10 +476,22 @@ func (b *Bot) KickChatMember(chatId interface{}, userId int) (result ApiResult) 
 	return b.requestResult("kickChatMember", params)
 }
 
+// Leave chat
+//
+// https://core.telegram.org/bots/api#leavechat
+func (b *Bot) LeaveChat(chatId interface{}) (result ApiResponse) {
+	// essential params
+	params := map[string]interface{}{
+		"chat_id": chatId,
+	}
+
+	return b.requestResult("leaveChat", params)
+}
+
 // Unban chat member
 //
-//https://core.telegram.org/bots/api#unbanchatmember
-func (b *Bot) UnbanChatMember(chatId interface{}, userId int) (result ApiResult) {
+// https://core.telegram.org/bots/api#unbanchatmember
+func (b *Bot) UnbanChatMember(chatId interface{}, userId int) (result ApiResponse) {
 	// essential params
 	params := map[string]interface{}{
 		"chat_id": chatId,
@@ -400,12 +501,61 @@ func (b *Bot) UnbanChatMember(chatId interface{}, userId int) (result ApiResult)
 	return b.requestResult("unbanChatMember", params)
 }
 
+// Get chat
+//
+// https://core.telegram.org/bots/api#getchat
+func (b *Bot) GetChat(chatId interface{}) (result ApiResponseChat) {
+	// essential params
+	params := map[string]interface{}{
+		"chat_id": chatId,
+	}
+
+	return b.requestResultChat("getChat", params)
+}
+
+// Get chat administrators
+//
+// https://core.telegram.org/bots/api#getchatadministrators
+func (b *Bot) GetChatAdministrators(chatId interface{}) (result ApiResponseChatAdministrators) {
+	// essential params
+	params := map[string]interface{}{
+		"chat_id": chatId,
+	}
+
+	return b.requestResultChatAdministrators("getChatAdministrators", params)
+}
+
+// Get chat members count
+//
+// https://core.telegram.org/bots/api#getchatmemberscount
+func (b *Bot) GetChatMembersCount(chatId interface{}) (result ApiResponseInt) {
+	// essential params
+	params := map[string]interface{}{
+		"chat_id": chatId,
+	}
+
+	return b.requestResultInt("getChatMembersCount", params)
+}
+
+// Get chat member
+//
+// https://core.telegram.org/bots/api#getchatmember
+func (b *Bot) GetChatMember(chatId interface{}, userId int) (result ApiResponseChatMember) {
+	// essential params
+	params := map[string]interface{}{
+		"chat_id": chatId,
+		"user_id": userId,
+	}
+
+	return b.requestResultChatMember("getChatMember", params)
+}
+
 // Answer callback query
 //
 // options include: text and show_alert
 //
 // https://core.telegram.org/bots/api#answercallbackquery
-func (b *Bot) AnswerCallbackQuery(callbackQueryId *string, options map[string]interface{}) (result ApiResult) {
+func (b *Bot) AnswerCallbackQuery(callbackQueryId *string, options map[string]interface{}) (result ApiResponse) {
 	// essential params
 	params := map[string]interface{}{
 		"callback_query_id": *callbackQueryId,
@@ -432,7 +582,7 @@ func (b *Bot) AnswerCallbackQuery(callbackQueryId *string, options map[string]in
 // other options: parse_mode, disable_web_page_preview, and reply_markup
 //
 // https://core.telegram.org/bots/api#editmessagetext
-func (b *Bot) EditMessageText(text *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) EditMessageText(text *string, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"text": *text,
@@ -455,7 +605,7 @@ func (b *Bot) EditMessageText(text *string, options map[string]interface{}) (res
 // other options: reply_markup
 //
 // https://core.telegram.org/bots/api#editmessagecaption
-func (b *Bot) EditMessageCaption(caption *string, options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) EditMessageCaption(caption *string, options map[string]interface{}) (result ApiResponseMessage) {
 	// essential params
 	params := map[string]interface{}{
 		"caption": *caption,
@@ -478,25 +628,8 @@ func (b *Bot) EditMessageCaption(caption *string, options map[string]interface{}
 // other options: reply_markup
 //
 // https://core.telegram.org/bots/api#editmessagereplymarkup
-func (b *Bot) EditMessageReplyMarkup(options map[string]interface{}) (result ApiResultMessage) {
+func (b *Bot) EditMessageReplyMarkup(options map[string]interface{}) (result ApiResponseMessage) {
 	return b.requestResultMessage("editMessageReplyMarkup", options)
-}
-
-// Get updates.
-//
-// options include: offset, limit, and timeout.
-//
-// https://core.telegram.org/bots/api#getupdates
-func (b *Bot) GetUpdates(options map[string]interface{}) (result ApiResultUpdates) {
-	// optional params
-	params := map[string]interface{}{}
-	for key, val := range options {
-		if val != nil {
-			params[key] = val
-		}
-	}
-
-	return b.requestResultUpdates("getUpdates", params)
 }
 
 // Send answers to an inline query.
@@ -506,7 +639,7 @@ func (b *Bot) GetUpdates(options map[string]interface{}) (result ApiResultUpdate
 // options include: cache_time, is_personal, next_offset, switch_pm_text, and switch_pm_parameter.
 //
 // https://core.telegram.org/bots/api#answerinlinequery
-func (b *Bot) AnswerInlineQuery(inlineQueryId string, results []interface{}, options map[string]interface{}) (result ApiResult) {
+func (b *Bot) AnswerInlineQuery(inlineQueryId string, results []interface{}, options map[string]interface{}) (result ApiResponse) {
 	// essential params
 	params := map[string]interface{}{
 		"inline_query_id": inlineQueryId,
@@ -666,15 +799,15 @@ func (b *Bot) sendRequest(method string, params map[string]interface{}) (resp *h
 	return nil, false
 }
 
-// Send request for ApiResult and fetch its result.
-func (b *Bot) requestResult(method string, params map[string]interface{}) (result ApiResult) {
+// Send request for ApiResponse and fetch its result.
+func (b *Bot) requestResult(method string, params map[string]interface{}) (result ApiResponse) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResult
+			var jsonResponse ApiResponse
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -689,18 +822,23 @@ func (b *Bot) requestResult(method string, params map[string]interface{}) (resul
 
 	b.error(errStr)
 
-	return ApiResult{Ok: false, Description: &errStr}
+	return ApiResponse{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
-// Send request for ApiResultUser and fetch its result.
-func (b *Bot) requestResultUser(method string, params map[string]interface{}) (result ApiResultUser) {
+// Send request for ApiResponseUser and fetch its result.
+func (b *Bot) requestResultUser(method string, params map[string]interface{}) (result ApiResponseUser) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResultUser
+			var jsonResponse ApiResponseUser
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -715,18 +853,23 @@ func (b *Bot) requestResultUser(method string, params map[string]interface{}) (r
 
 	b.error(errStr)
 
-	return ApiResultUser{Ok: false, Description: &errStr}
+	return ApiResponseUser{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
-// Send request for ApiResultMessage and fetch its result.
-func (b *Bot) requestResultMessage(method string, params map[string]interface{}) (result ApiResultMessage) {
+// Send request for ApiResponseMessage and fetch its result.
+func (b *Bot) requestResultMessage(method string, params map[string]interface{}) (result ApiResponseMessage) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResultMessage
+			var jsonResponse ApiResponseMessage
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -741,18 +884,23 @@ func (b *Bot) requestResultMessage(method string, params map[string]interface{})
 
 	b.error(errStr)
 
-	return ApiResultMessage{Ok: false, Description: &errStr}
+	return ApiResponseMessage{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
-// Send request for ApiResultUserProfilePhotos and fetch its result.
-func (b *Bot) requestResultUserProfilePhotos(method string, params map[string]interface{}) (result ApiResultUserProfilePhotos) {
+// Send request for ApiResponseUserProfilePhotos and fetch its result.
+func (b *Bot) requestResultUserProfilePhotos(method string, params map[string]interface{}) (result ApiResponseUserProfilePhotos) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResultUserProfilePhotos
+			var jsonResponse ApiResponseUserProfilePhotos
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -767,18 +915,23 @@ func (b *Bot) requestResultUserProfilePhotos(method string, params map[string]in
 
 	b.error(errStr)
 
-	return ApiResultUserProfilePhotos{Ok: false, Description: &errStr}
+	return ApiResponseUserProfilePhotos{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
-// Send request for ApiResultUpdates and fetch its result.
-func (b *Bot) requestResultUpdates(method string, params map[string]interface{}) (result ApiResultUpdates) {
+// Send request for ApiResponseUpdates and fetch its result.
+func (b *Bot) requestResultUpdates(method string, params map[string]interface{}) (result ApiResponseUpdates) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResultUpdates
+			var jsonResponse ApiResponseUpdates
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -793,18 +946,23 @@ func (b *Bot) requestResultUpdates(method string, params map[string]interface{})
 
 	b.error(errStr)
 
-	return ApiResultUpdates{Ok: false, Description: &errStr}
+	return ApiResponseUpdates{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
-// Send request for ApiResultFile and fetch its result.
-func (b *Bot) requestResultFile(method string, params map[string]interface{}) (result ApiResultFile) {
+// Send request for ApiResponseFile and fetch its result.
+func (b *Bot) requestResultFile(method string, params map[string]interface{}) (result ApiResponseFile) {
 	var errStr string
 
 	if resp, success := b.sendRequest(method, params); success {
 		defer resp.Body.Close()
 
 		if body, err := ioutil.ReadAll(resp.Body); err == nil {
-			var jsonResponse ApiResultFile
+			var jsonResponse ApiResponseFile
 			if err := json.Unmarshal(body, &jsonResponse); err == nil {
 				return jsonResponse
 			} else {
@@ -819,7 +977,136 @@ func (b *Bot) requestResultFile(method string, params map[string]interface{}) (r
 
 	b.error(errStr)
 
-	return ApiResultFile{Ok: false, Description: &errStr}
+	return ApiResponseFile{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
+}
+
+// Send request for ApiResponseChat and fetch its result.
+func (b *Bot) requestResultChat(method string, params map[string]interface{}) (result ApiResponseChat) {
+	var errStr string
+
+	if resp, success := b.sendRequest(method, params); success {
+		defer resp.Body.Close()
+
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			var jsonResponse ApiResponseChat
+			if err := json.Unmarshal(body, &jsonResponse); err == nil {
+				return jsonResponse
+			} else {
+				errStr = fmt.Sprintf("json parse error: %s (%s)", err.Error(), string(body))
+			}
+		} else {
+			errStr = fmt.Sprintf("response read error: %s", err.Error())
+		}
+	} else {
+		errStr = fmt.Sprintf("%s failed", method)
+	}
+
+	b.error(errStr)
+
+	return ApiResponseChat{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
+}
+
+// Send request for ApiResponseChatAdministrator and fetch its result.
+func (b *Bot) requestResultChatAdministrators(method string, params map[string]interface{}) (result ApiResponseChatAdministrators) {
+	var errStr string
+
+	if resp, success := b.sendRequest(method, params); success {
+		defer resp.Body.Close()
+
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			var jsonResponse ApiResponseChatAdministrators
+			if err := json.Unmarshal(body, &jsonResponse); err == nil {
+				return jsonResponse
+			} else {
+				errStr = fmt.Sprintf("json parse error: %s (%s)", err.Error(), string(body))
+			}
+		} else {
+			errStr = fmt.Sprintf("response read error: %s", err.Error())
+		}
+	} else {
+		errStr = fmt.Sprintf("%s failed", method)
+	}
+
+	b.error(errStr)
+
+	return ApiResponseChatAdministrators{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
+}
+
+// Send request for ApiResponseChatMember and fetch its result.
+func (b *Bot) requestResultChatMember(method string, params map[string]interface{}) (result ApiResponseChatMember) {
+	var errStr string
+
+	if resp, success := b.sendRequest(method, params); success {
+		defer resp.Body.Close()
+
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			var jsonResponse ApiResponseChatMember
+			if err := json.Unmarshal(body, &jsonResponse); err == nil {
+				return jsonResponse
+			} else {
+				errStr = fmt.Sprintf("json parse error: %s (%s)", err.Error(), string(body))
+			}
+		} else {
+			errStr = fmt.Sprintf("response read error: %s", err.Error())
+		}
+	} else {
+		errStr = fmt.Sprintf("%s failed", method)
+	}
+
+	b.error(errStr)
+
+	return ApiResponseChatMember{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
+}
+
+// Send request for ApiResponseInt and fetch its result.
+func (b *Bot) requestResultInt(method string, params map[string]interface{}) (result ApiResponseInt) {
+	var errStr string
+
+	if resp, success := b.sendRequest(method, params); success {
+		defer resp.Body.Close()
+
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			var jsonResponse ApiResponseInt
+			if err := json.Unmarshal(body, &jsonResponse); err == nil {
+				return jsonResponse
+			} else {
+				errStr = fmt.Sprintf("json parse error: %s (%s)", err.Error(), string(body))
+			}
+		} else {
+			errStr = fmt.Sprintf("response read error: %s", err.Error())
+		}
+	} else {
+		errStr = fmt.Sprintf("%s failed", method)
+	}
+
+	b.error(errStr)
+
+	return ApiResponseInt{
+		ApiResponseBase: ApiResponseBase{
+			Ok:          false,
+			Description: &errStr,
+		},
+	}
 }
 
 // Handle Webhook request.

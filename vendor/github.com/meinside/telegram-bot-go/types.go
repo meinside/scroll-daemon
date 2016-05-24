@@ -56,58 +56,96 @@ const (
 type MessageEntityType string
 
 const (
-	MessageEntityTypeMention    = "mention"
-	MessageEntityTypeHashTag    = "hashtag"
-	MessageEntityTypeBotCommand = "bot_command"
-	MessageEntityTypeUrl        = "url"
-	MessageEntityTypeEmail      = "email"
-	MessageEntityTypeBold       = "bold"
-	MessageEntityTypeItalic     = "italic"
-	MessageEntityTypeCode       = "code"
-	MessageEntityTypePre        = "pre"
-	MessageEntityTypeTextLink   = "text_link"
+	MessageEntityTypeMention     = "mention"
+	MessageEntityTypeHashTag     = "hashtag"
+	MessageEntityTypeBotCommand  = "bot_command"
+	MessageEntityTypeUrl         = "url"
+	MessageEntityTypeEmail       = "email"
+	MessageEntityTypeBold        = "bold"
+	MessageEntityTypeItalic      = "italic"
+	MessageEntityTypeCode        = "code"
+	MessageEntityTypePre         = "pre"
+	MessageEntityTypeTextLink    = "text_link"
+	MessageEntityTypeTextMention = "text_mention"
 )
 
-// API result
-type ApiResult struct {
-	Ok          bool        `json:"ok"`
-	Description *string     `json:"description,omitempty"`
-	Result      interface{} `json:"result,omitempty"`
-}
+// Chat Member Statuses
+//
+// https://core.telegram.org/bots/api#chatmember
+type ChatMemberStatus string
 
-// API result for User
-type ApiResultUser struct {
+const (
+	ChatMemberStatusCreator       ChatMemberStatus = "creator"
+	ChatMemberStatusAdministrator ChatMemberStatus = "administrator"
+	ChatMemberStatusMember        ChatMemberStatus = "member"
+	ChatMemberStatusLeft          ChatMemberStatus = "left"
+	ChatMemberStatusKicked        ChatMemberStatus = "kicked"
+)
+
+// API response (base)
+type ApiResponseBase struct {
 	Ok          bool    `json:"ok"`
 	Description *string `json:"description,omitempty"`
-	Result      *User   `json:"result,omitempty"`
 }
 
-// API result for Message
-type ApiResultMessage struct {
-	Ok          bool     `json:"ok"`
-	Description *string  `json:"description,omitempty"`
-	Result      *Message `json:"result,omitempty"`
+// API response
+type ApiResponse struct {
+	ApiResponseBase
+	Result interface{} `json:"result,omitempty"`
 }
 
-// API result for UserProfilePhotos
-type ApiResultUserProfilePhotos struct {
-	Ok          bool               `json:"ok"`
-	Description *string            `json:"description,omitempty"`
-	Result      *UserProfilePhotos `json:"result,omitempty"`
+// API response with result type: User
+type ApiResponseUser struct {
+	ApiResponseBase
+	Result *User `json:"result,omitempty"`
 }
 
-// API result for File
-type ApiResultFile struct {
-	Ok          bool    `json:"ok"`
-	Description *string `json:"description,omitempty"`
-	Result      *File   `json:"result,omitempty"`
+// API response with result type: Message
+type ApiResponseMessage struct {
+	ApiResponseBase
+	Result *Message `json:"result,omitempty"`
 }
 
-// API result for Update
-type ApiResultUpdates struct {
-	Ok          bool     `json:"ok"`
-	Description *string  `json:"description,omitempty"`
-	Result      []Update `json:"result,omitempty"`
+// API response with result type: UserProfilePhotos
+type ApiResponseUserProfilePhotos struct {
+	ApiResponseBase
+	Result *UserProfilePhotos `json:"result,omitempty"`
+}
+
+// API response with result type: File
+type ApiResponseFile struct {
+	ApiResponseBase
+	Result *File `json:"result,omitempty"`
+}
+
+// API response with result type: Update
+type ApiResponseUpdates struct {
+	ApiResponseBase
+	Result []Update `json:"result,omitempty"`
+}
+
+// API response with result type: Chat
+type ApiResponseChat struct {
+	ApiResponseBase
+	Result *Chat `json:"result,omitempty"`
+}
+
+// API response with result type: ChatAdministrators
+type ApiResponseChatAdministrators struct {
+	ApiResponseBase
+	Result []ChatMember `json:"result,omitempty"`
+}
+
+// API response with result type: ChatMember
+type ApiResponseChatMember struct {
+	ApiResponseBase
+	Result ChatMember `json:"result,omitempty"`
+}
+
+// API response with result type: int
+type ApiResponseInt struct {
+	ApiResponseBase
+	Result int `json:"result,omitempty"`
 }
 
 // Update
@@ -116,6 +154,7 @@ type ApiResultUpdates struct {
 type Update struct {
 	UpdateId           int                 `json:"update_id"`
 	Message            *Message            `json:"message,omitempty"`
+	EditedMessage      *Message            `json:"edited_message,omitempty"`
 	InlineQuery        *InlineQuery        `json:"inline_query,omitempty"`
 	ChosenInlineResult *ChosenInlineResult `json:"chosen_inline_result,omitempty"`
 	CallbackQuery      *CallbackQuery      `json:"callback_query,omitempty"`
@@ -162,7 +201,8 @@ type MessageEntity struct {
 	Type   MessageEntityType `json:"type"`
 	Offset int               `json:"offset"`
 	Length int               `json:"length"`
-	Url    *string           `json:"url,omitempty"`
+	Url    *string           `json:"url,omitempty"`  // for Type == "text_link" only,
+	User   *User             `json:"user,omitempty"` // for Type == "text_mention" only,
 }
 
 // PhotoSize
@@ -194,6 +234,7 @@ type Sticker struct {
 	Width    int        `json:"width"`
 	Height   int        `json:"height"`
 	Thumb    *PhotoSize `json:"thumb,omitempty"`
+	Emoji    *string    `json:"emoji,omitempty"`
 	FileSize int        `json:"file_size,omitempty"`
 }
 
@@ -328,6 +369,14 @@ type ForceReply struct {
 	Selective  bool `json:"selective,omitempty"`
 }
 
+// ChatMember
+//
+// https://core.telegram.org/bots/api#chatmember
+type ChatMember struct {
+	User   *User            `json:"user"`
+	Status ChatMemberStatus `json:"status"`
+}
+
 // Message
 //
 // https://core.telegram.org/bots/api#message
@@ -337,8 +386,10 @@ type Message struct {
 	Date                  int             `json:"date"`
 	Chat                  *Chat           `json:"chat"`
 	ForwardFrom           *User           `json:"forward_from,omitempty"`
+	ForwardFromChat       *Chat           `json:"forward_from_chat,omitempty"`
 	ForwardDate           int             `json:"forward_date,omitempty"`
 	ReplyToMessage        *Message        `json:"reply_to_message,omitempty"`
+	EditDate              int             `json:"edit_date,omitempty"`
 	Text                  *string         `json:"text,omitempty"`
 	Entities              []MessageEntity `json:"entities,omitempty"`
 	Audio                 *Audio          `json:"audio,omitempty"`

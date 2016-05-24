@@ -398,6 +398,11 @@ func (u *Update) HasMessage() bool {
 	return u.Message != nil
 }
 
+// Check if Update has EditedMessage.
+func (u *Update) HasEditedMessage() bool {
+	return u.EditedMessage != nil
+}
+
 // Check if Update has InlineQuery
 func (u *Update) HasInlineQuery() bool {
 	return u.InlineQuery != nil
@@ -450,8 +455,13 @@ func (m Message) String() string {
 }
 
 // Check if Message has Forward.
-func (m *Message) HasForward() bool {
+func (m *Message) HasForwardFrom() bool {
 	return m.ForwardFrom != nil && m.ForwardDate > 0
+}
+
+// Check if Message has Forward from chat.
+func (m *Message) HasForwardFromChat() bool {
+	return m.ForwardFromChat != nil && m.ForwardDate > 0
 }
 
 // Check if Message has ReplyTo.

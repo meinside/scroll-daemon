@@ -8,6 +8,13 @@ With this daemon, you can scroll strings on your [Pimoroni](https://shop.pimoron
 $ go get -u github.com/meinside/scroll-daemon/...
 ```
 
+and build daemon:
+
+```bash
+$ cd $GOPATH/src/github.com/meinside/scroll-daemon
+$ go build -o scroll-daemon main.go
+```
+
 ## Configuration
 
 ### Config file

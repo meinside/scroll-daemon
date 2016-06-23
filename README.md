@@ -12,7 +12,7 @@ and build daemon:
 
 ```bash
 $ cd $GOPATH/src/github.com/meinside/scroll-daemon
-$ go build -o scroll-daemon main.go
+$ go build
 ```
 
 ## Configuration

@@ -8,6 +8,8 @@ import (
 
 	"github.com/meinside/scroll-daemon/lib"
 
+	"github.com/meinside/rpi-tools/status"
+
 	scroll "github.com/meinside/scrollphat-go"
 	bot "github.com/meinside/telegram-bot-go"
 )
@@ -118,7 +120,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 					log.Printf("*** Failed to send message: %s\n", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
-				ip := lib.GetIPString()
+				ip := strings.Join(status.IpAddresses(), ", ")
 
 				queue <- ip
 
@@ -161,7 +163,7 @@ var httpHandler = func(w http.ResponseWriter, r *http.Request) {
 		if command == lib.CommandTime {
 			queue <- lib.GetTimeString()
 		} else if command == lib.CommandIP {
-			queue <- lib.GetIPString()
+			queue <- strings.Join(status.IpAddresses(), ", ")
 		} else {
 			log.Printf("*** No such command: %s\n", command)
 		}

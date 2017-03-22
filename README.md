@@ -5,7 +5,8 @@ With this daemon, you can scroll strings on your [Pimoroni](https://shop.pimoron
 ## Install
 
 ```bash
-$ go get -u github.com/meinside/scroll-daemon/...
+$ go get -d github.com/meinside/scroll-daemon
+$ go get github.com/meinside/scroll-daemon/cmd/scroll-cli
 ```
 
 and build daemon:

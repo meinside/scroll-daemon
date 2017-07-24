@@ -82,12 +82,12 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 	// check username
 	var userId string
 	if update.Message.From.Username == nil {
-		log.Printf("*** Not allowed (no user name): %s\n", *update.Message.From.FirstName)
+		log.Printf("*** Not allowed (no user name): %s", update.Message.From.FirstName)
 		return false
 	}
 	userId = *update.Message.From.Username
 	if !isAvailableId(userId) {
-		log.Printf("*** Id not allowed: %s\n", userId)
+		log.Printf("*** Id not allowed: %s", userId)
 		return false
 	}
 
@@ -95,7 +95,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 		txt := *update.Message.Text
 
 		if isVerbose {
-			log.Printf("received telegram message: %s\n", txt)
+			log.Printf("received telegram message: %s", txt)
 		}
 
 		if strings.HasPrefix(txt, "/") { // if it is command,
@@ -108,38 +108,38 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 				}
 
 				// send message
-				if sent := b.SendMessage(update.Message.Chat.Id, &message, options); !sent.Ok {
-					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				if sent := b.SendMessage(update.Message.Chat.Id, message, options); !sent.Ok {
+					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandTime) {
 				time := lib.GetTimeString()
 
 				queue <- time
 
-				if sent := b.SendMessage(update.Message.Chat.Id, &time, map[string]interface{}{}); !sent.Ok {
-					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				if sent := b.SendMessage(update.Message.Chat.Id, time, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
 				ip := strings.Join(status.IpAddresses(), ", ")
 
 				queue <- ip
 
-				if sent := b.SendMessage(update.Message.Chat.Id, &ip, map[string]interface{}{}); !sent.Ok {
-					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				if sent := b.SendMessage(update.Message.Chat.Id, ip, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message
 				message := lib.MessageHelp
-				if sent := b.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
-					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				if sent := b.SendMessage(update.Message.Chat.Id, message, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else {
-				log.Printf("*** No such command: %s\n", txt)
+				log.Printf("*** No such command: %s", txt)
 
 				// send message
 				message := fmt.Sprintf("No such command: %s", txt)
-				if sent := b.SendMessage(update.Message.Chat.Id, &message, map[string]interface{}{}); !sent.Ok {
-					log.Printf("*** Failed to send message: %s\n", *sent.Description)
+				if sent := b.SendMessage(update.Message.Chat.Id, message, map[string]interface{}{}); !sent.Ok {
+					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			}
 		} else { // otherwise,
@@ -156,7 +156,7 @@ var httpHandler = func(w http.ResponseWriter, r *http.Request) {
 	value := r.FormValue(lib.ParamValue)
 
 	if isVerbose {
-		log.Printf("received http command: %s, value: %s\n", command, value)
+		log.Printf("received http command: %s, value: %s", command, value)
 	}
 
 	if command != "" { // if it is command,
@@ -165,7 +165,7 @@ var httpHandler = func(w http.ResponseWriter, r *http.Request) {
 		} else if command == lib.CommandIP {
 			queue <- strings.Join(status.IpAddresses(), ", ")
 		} else {
-			log.Printf("*** No such command: %s\n", command)
+			log.Printf("*** No such command: %s", command)
 		}
 	} else { // otherwise,
 		queue <- value
@@ -197,7 +197,7 @@ func main() {
 
 		// start web server
 		go func() {
-			log.Printf("Starting local web server on port: %d\n", localPort)
+			log.Printf("Starting local web server on port: %d", localPort)
 
 			http.HandleFunc(HttpCommandPath, httpHandler)
 			if err := http.ListenAndServe(fmt.Sprintf(":%d", localPort), nil); err != nil {
@@ -207,7 +207,7 @@ func main() {
 
 		// monitor for new telegram updates
 		if me := client.GetMe(); me.Ok { // get info about this bot
-			log.Printf("Launching bot: @%s (%s)\n", *me.Result.Username, *me.Result.FirstName)
+			log.Printf("Launching bot: @%s (%s)", *me.Result.Username, me.Result.FirstName)
 
 			// delete webhook (getting updates will not work when wehbook is set up)
 			if unhooked := client.DeleteWebhook(); unhooked.Ok {
@@ -218,7 +218,7 @@ func main() {
 							processUpdate(b, update)
 						}
 					} else {
-						log.Printf("*** Error while receiving update (%s)\n", err.Error())
+						log.Printf("*** Error while receiving update (%s)", err.Error())
 					}
 				})
 			} else {

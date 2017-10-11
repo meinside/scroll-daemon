@@ -4,16 +4,18 @@ const (
 	ParamCommand = "c"
 	ParamValue   = "v"
 
-	CommandStart = "start"
-	CommandTime  = "time"
-	CommandIP    = "ip"
-	CommandHelp  = "help"
+	CommandStart    = "start"
+	CommandTime     = "time"
+	CommandIP       = "ip"
+	CommandLocation = "loc"
+	CommandHelp     = "help"
 
 	MessageStart = "Welcome. (https://github.com/meinside/scroll-daemon)"
 	MessageHelp  = `Usage:
 
 /time : scroll current time on Scroll pHat
 /ip : scroll ip addresses on Scroll pHat
+/loc : send live location of this bot
 /help : show this help message
 `
 )

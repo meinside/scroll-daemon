@@ -18,6 +18,8 @@ const (
 	HttpCommandPath = "/"
 
 	QueueSize = 1
+
+	LocationLivePeriodSeconds = 60
 )
 
 // variables
@@ -53,6 +55,9 @@ func init() {
 				},
 				bot.KeyboardButton{
 					Text: "/" + lib.CommandIP,
+				},
+				bot.KeyboardButton{
+					Text: "/" + lib.CommandLocation,
 				},
 				bot.KeyboardButton{
 					Text: "/" + lib.CommandHelp,
@@ -126,6 +131,14 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 				if sent := b.SendMessage(update.Message.Chat.Id, ip, map[string]interface{}{}); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
+				}
+			} else if strings.HasPrefix(txt, "/"+lib.CommandLocation) {
+				lat, lon := status.GeoLocation()
+
+				if sent := b.SendLocation(update.Message.Chat.Id, lat, lon, map[string]interface{}{
+					"live_period": LocationLivePeriodSeconds,
+				}); !sent.Ok {
+					log.Printf("*** Failed to send location: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message

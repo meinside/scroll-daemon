@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	HttpCommandPath = "/"
+	httpCommandPath = "/"
 
-	QueueSize = 1
+	queueSize = 1
 
-	LocationLivePeriodSeconds = 60
+	locationLivePeriodSeconds = 60
 )
 
 // variables
@@ -66,7 +66,7 @@ func init() {
 		}
 
 		// initialize other variables
-		queue = make(chan string, QueueSize)
+		queue = make(chan string, queueSize)
 	} else {
 		panic(err.Error())
 	}
@@ -115,7 +115,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 				message := lib.MessageStart
 
 				// send message
-				if sent := b.SendMessage(update.Message.Chat.Id, message, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.ID, message, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandTime) {
@@ -123,7 +123,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 				queue <- time
 
-				if sent := b.SendMessage(update.Message.Chat.Id, time, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.ID, time, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandIP) {
@@ -131,16 +131,16 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 				queue <- ip
 
-				if sent := b.SendMessage(update.Message.Chat.Id, ip, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.ID, ip, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandLocation) {
 				if extIp, err := status.ExternalIpAddress(); err == nil {
 					if geoInfo, err := status.GeoLocation(extIp); err == nil {
-						options["live_period"] = LocationLivePeriodSeconds
+						options["live_period"] = locationLivePeriodSeconds
 
 						if sent := b.SendLocation(
-							update.Message.Chat.Id,
+							update.Message.Chat.ID,
 							geoInfo.Location.Latitude,
 							geoInfo.Location.Longitude,
 							options,
@@ -149,7 +149,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 						}
 					} else {
 						if sent := b.SendMessage(
-							update.Message.Chat.Id,
+							update.Message.Chat.ID,
 							fmt.Sprintf("Failed to get geo location: %s", err),
 							options,
 						); !sent.Ok {
@@ -158,7 +158,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 					}
 				} else {
 					if sent := b.SendMessage(
-						update.Message.Chat.Id,
+						update.Message.Chat.ID,
 						fmt.Sprintf("Failed to get external ip address: %s", err),
 						options,
 					); !sent.Ok {
@@ -168,7 +168,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message
 				message := lib.MessageHelp
-				if sent := b.SendMessage(update.Message.Chat.Id, message, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.ID, message, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			} else {
@@ -176,7 +176,7 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 				// send message
 				message := fmt.Sprintf("No such command: %s", txt)
-				if sent := b.SendMessage(update.Message.Chat.Id, message, options); !sent.Ok {
+				if sent := b.SendMessage(update.Message.Chat.ID, message, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
 				}
 			}
@@ -237,7 +237,7 @@ func main() {
 		go func() {
 			log.Printf("Starting local web server on port: %d", localPort)
 
-			http.HandleFunc(HttpCommandPath, httpHandler)
+			http.HandleFunc(httpCommandPath, httpHandler)
 			if err := http.ListenAndServe(fmt.Sprintf(":%d", localPort), nil); err != nil {
 				panic(err.Error())
 			}

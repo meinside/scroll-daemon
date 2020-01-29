@@ -57,9 +57,6 @@ func init() {
 					Text: "/" + lib.CommandIP,
 				},
 				bot.KeyboardButton{
-					Text: "/" + lib.CommandLocation,
-				},
-				bot.KeyboardButton{
 					Text: "/" + lib.CommandHelp,
 				},
 			},
@@ -133,37 +130,6 @@ func processUpdate(b *bot.Bot, update bot.Update) bool {
 
 				if sent := b.SendMessage(update.Message.Chat.ID, ip, options); !sent.Ok {
 					log.Printf("*** Failed to send message: %s", *sent.Description)
-				}
-			} else if strings.HasPrefix(txt, "/"+lib.CommandLocation) {
-				if extIp, err := status.ExternalIpAddress(); err == nil {
-					if geoInfo, err := status.GeoLocation(extIp); err == nil {
-						options["live_period"] = locationLivePeriodSeconds
-
-						if sent := b.SendLocation(
-							update.Message.Chat.ID,
-							geoInfo.Location.Latitude,
-							geoInfo.Location.Longitude,
-							options,
-						); !sent.Ok {
-							log.Printf("*** Failed to send location: %s", *sent.Description)
-						}
-					} else {
-						if sent := b.SendMessage(
-							update.Message.Chat.ID,
-							fmt.Sprintf("Failed to get geo location: %s", err),
-							options,
-						); !sent.Ok {
-							log.Printf("*** Failed to send message: %s", *sent.Description)
-						}
-					}
-				} else {
-					if sent := b.SendMessage(
-						update.Message.Chat.ID,
-						fmt.Sprintf("Failed to get external ip address: %s", err),
-						options,
-					); !sent.Ok {
-						log.Printf("*** Failed to send message: %s", *sent.Description)
-					}
 				}
 			} else if strings.HasPrefix(txt, "/"+lib.CommandHelp) {
 				// send message
